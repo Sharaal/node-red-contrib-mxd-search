@@ -12,6 +12,10 @@ module.exports = (RED) => {
     node.log(`initialize mxd-search node with an limit of ${config.limit}`);
 
     const { AssetsQuery, heimdall } = RED.nodes.getNode(config.heimdall);
+    if (!AssetsQuery || !heimdall) {
+      node.error('heimdall is missing');
+      return;
+    }
 
     node.on('input', async (msg) => {
       node.status({ fill: 'grey', shape: 'dot', text: `requesting...` });
