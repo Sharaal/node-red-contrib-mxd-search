@@ -33,17 +33,14 @@ module.exports = (RED) => {
         .filter('contentTypeSeriesOrMovies')
         .filter('search', search.title)
         .query('pageSize', config.limit);
-      let assets;
       try {
-        assets = await heimdall.getAssets(query);
+        const assets = await heimdall.getAssets(query);
+        node.status({});
+        node.send({ payload: assets });
       } catch (e) {
         node.status({ fill: 'yellow', shape: 'dot', text: 'requesting error' });
         node.warn(`requesting error (${e.message})`);
-        return;
       }
-
-      node.status({});
-      node.send({ payload: assets });
     });
   });
 };
