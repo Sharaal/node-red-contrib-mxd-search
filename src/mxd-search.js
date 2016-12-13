@@ -19,7 +19,7 @@ module.exports = (RED) => {
     }
 
     node.on('input', async (msg) => {
-      node.status({ fill: 'grey', shape: 'dot', text: `requesting...` });
+      node.status({ fill: 'grey', shape: 'dot', text: 'requesting...' });
       const search = msg.payload;
 
       if (!search.title) {
