@@ -7,6 +7,7 @@ module.exports = (RED) => {
     if (!config.limit) {
       node.status({ fill: 'red', shape: 'dot', text: 'config is missing' });
       node.error('config is missing');
+      return;
     }
     node.log(`initialize mxd-search node with an limit of ${config.limit}`);
 
