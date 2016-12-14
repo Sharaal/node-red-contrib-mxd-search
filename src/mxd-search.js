@@ -1,46 +1,21 @@
-module.exports = (RED) => {
-  RED.nodes.registerType('mxd-search', function NODE(config) {
-    RED.nodes.createNode(this, config);
-    const node = this;
-    node.status({});
+const DNode = require('node-red-contrib-dnode');
 
-    if (!config.limit) {
-      node.status({ fill: 'red', shape: 'dot', text: 'config is missing' });
-      node.error('config is missing');
-      return;
-    }
-    node.log(`initialize mxd-search node with an limit of ${config.limit}`);
+module.exports = DNode.createNode('mxd-search', (dnode) => {
+  const limit = dnode.getConfig('limit');
+  const { AssetsQuery, heimdall } = dnode.getServices('heimdall');
 
-    const { AssetsQuery, heimdall } = RED.nodes.getNode(config.heimdall);
-    if (!AssetsQuery || !heimdall) {
-      node.status({ fill: 'red', shape: 'dot', text: 'heimdall is missing' });
-      node.error('heimdall is missing');
-      return;
+  dnode.onInput(async (msg) => {
+    const title = msg.payload.title;
+    if (!title) {
+      throw new Error('missing title in payload');
     }
 
-    node.on('input', async (msg) => {
-      node.status({ fill: 'grey', shape: 'dot', text: 'requesting...' });
-      const search = msg.payload;
+    const query = (new AssetsQuery())
+      .filter('contentTypeSeriesOrMovies')
+      .filter('search', title)
+      .query('pageSize', limit);
+    const assets = await heimdall.getAssets(query);
 
-      if (!search.title) {
-        node.status({ fill: 'yellow', shape: 'dot', text: 'no title in the payload' });
-        node.warn('no title in the payload, payload: ');
-        node.warn(search);
-        return;
-      }
-
-      const query = (new AssetsQuery())
-        .filter('contentTypeSeriesOrMovies')
-        .filter('search', search.title)
-        .query('pageSize', config.limit);
-      try {
-        const assets = await heimdall.getAssets(query);
-        node.status({});
-        node.send({ payload: assets });
-      } catch (e) {
-        node.status({ fill: 'yellow', shape: 'dot', text: 'requesting error' });
-        node.warn(`requesting error (${e.message})`);
-      }
-    });
+    dnode.sendMessage({ payload: assets });
   });
-};
+});
