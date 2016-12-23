@@ -5,14 +5,14 @@ module.exports = DNode.createNode('mxd-search', (dnode) => {
   const { AssetsQuery, heimdall } = dnode.getServices('heimdall');
 
   dnode.onInput(async (msg) => {
-    const title = msg.payload.title;
-    if (!title) {
-      throw new Error('missing title in payload');
+    const search = msg.payload.searchTitle || msg.payload.title;
+    if (!search) {
+      throw new Error('missing searchTitle and title in payload');
     }
 
     const query = (new AssetsQuery())
       .filter('contentTypeSeriesOrMovies')
-      .filter('search', title)
+      .filter('search', search)
       .query('pageSize', limit);
     const assets = await heimdall.getAssets(query);
 
